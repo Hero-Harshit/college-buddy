@@ -196,10 +196,11 @@ async def chat_endpoint(payload: ChatRequest):
 
             context_parts.append(f"[Document Chunk {i}]:\n{content}")
             sources.append({
-                "chunk_index": i,
-                "similarity": similarity,
-                "metadata": metadata,
-                "content_preview": content[:200] + ("..." if len(content) > 200 else "")
+                "id": i,
+                "document": metadata.get("source", "sample_college_data.pdf"),
+                "page": metadata.get("page", 1),
+                "snippet": content,
+                "similarity": similarity
             })
 
         context_text = "\n\n".join(context_parts) if context_parts else "No relevant context found in documents."
