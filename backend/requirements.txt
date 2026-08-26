@@ -3,4 +3,7 @@ uvicorn
 supabase
 python-dotenv
 langchain
-google-generativeai
+langchain-community
+langchain-google-genai
+pypdf
+pydantic
