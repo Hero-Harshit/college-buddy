@@ -13,6 +13,7 @@ if sys.stderr and hasattr(sys.stderr, "reconfigure"):
 from google import genai
 from pypdf import PdfReader
 from supabase import Client, create_client
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 # Load environment variables
 env_path = Path(__file__).resolve().parent / ".env"
@@ -46,38 +47,7 @@ def extract_text_from_pdf(pdf_path: Path) -> List[Dict[str, Any]]:
     return pages
 
 
-def chunk_text(text: str, chunk_size: int = 800, chunk_overlap: int = 100) -> List[str]:
-    """
-    Pure Python text chunker that creates overlapping text segments.
-    Splits with priority given to paragraphs or spaces to avoid cutting words.
-    """
-    chunks = []
-    start = 0
-    text_length = len(text)
 
-    while start < text_length:
-        end = start + chunk_size
-        if end >= text_length:
-            chunk = text[start:].strip()
-            if chunk:
-                chunks.append(chunk)
-            break
-
-        boundary = text.rfind("\n", start, end)
-        if boundary == -1 or boundary < start + (chunk_size // 2):
-            boundary = text.rfind(" ", start, end)
-
-        if boundary != -1 and boundary > start:
-            chunk = text[start:boundary].strip()
-            start = max(start + 1, boundary - chunk_overlap)
-        else:
-            chunk = text[start:end].strip()
-            start = end - chunk_overlap
-
-        if chunk:
-            chunks.append(chunk)
-
-    return chunks
 
 
 def get_embedding(client: genai.Client, text: str) -> List[float]:
@@ -130,16 +100,16 @@ def ingest_pdf(file_path: str = "sample_college_data.pdf"):
         return
 
     # Split text into chunks
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=400, chunk_overlap=50, separators=["\n\n", "\n", ".", " ", ""])
     all_chunks = []
     for page in pages:
-        page_chunks = chunk_text(page["text"], chunk_size=800, chunk_overlap=100)
+        page_chunks = text_splitter.split_text(page["text"])
         for idx, chunk in enumerate(page_chunks):
             all_chunks.append({
                 "content": chunk,
                 "metadata": {
-                    "source": pdf_path.name,
-                    "page": page["page_number"],
-                    "chunk_index": idx,
+                    "filename": pdf_path.name,
+                    "page": page["page_number"]
                 }
             })
 
@@ -152,6 +122,12 @@ def ingest_pdf(file_path: str = "sample_college_data.pdf"):
     # Initialize Supabase client
     print("Connecting to Supabase...")
     supabase: Client = create_client(supabase_url, supabase_key)
+    
+    print("Clearing existing documents from Supabase...")
+    try:
+        supabase.table("documents").delete().neq("id", -1).execute()
+    except Exception as e:
+        print(f"Delete failed: {e}")
 
     # Generate embeddings and upload in batches
     batch_size = 20

@@ -1,6 +1,7 @@
 import os
 import sys
 import math
+import json
 from pathlib import Path
 from typing import Any, Dict, List
 from dotenv import load_dotenv
@@ -186,59 +187,63 @@ async def chat_endpoint(payload: ChatRequest):
         # 3. Retrieve relevant chunks from Supabase
         matched_docs = retrieve_relevant_documents(supabase, query_embedding, match_count=4)
 
+        # Apply Similarity Thresholding
+        SIMILARITY_THRESHOLD = 0.75
+        has_similarity = any("similarity" in doc for doc in matched_docs)
+        
+        if has_similarity:
+            relevant_docs = [doc for doc in matched_docs if doc.get("similarity", 1.0) >= SIMILARITY_THRESHOLD]
+        else:
+            relevant_docs = matched_docs[:2]
+
         # 4. Prepare context and sources
         context_parts = []
-        sources = []
-        for i, doc in enumerate(matched_docs, start=1):
+        for i, doc in enumerate(relevant_docs, start=1):
             content = doc.get("content", "")
             metadata = doc.get("metadata", {})
-            similarity = doc.get("similarity", 0.0)
+            filename = metadata.get("filename", "sample_college_data.pdf")
+            page = metadata.get("page", 1)
 
-            context_parts.append(f"[Document Chunk {i}]:\n{content}")
-            sources.append({
-                "id": i,
-                "document": metadata.get("source", "sample_college_data.pdf"),
-                "page": metadata.get("page", 1),
-                "snippet": content,
-                "similarity": similarity
-            })
+            context_parts.append(
+                f"[Source ID: {i}, Document: {filename}, Page: {page}]\nContent: {content}"
+            )
 
         context_text = "\n\n".join(context_parts) if context_parts else "No relevant context found in documents."
 
         # 5. Construct the prompt
         user_question = payload.question
-        prompt = f"""You are "CollegeBuddy", the friendly, intelligent, and official AI Student Assistant for ABC Engineering College.
+        prompt = f"""You are AskAtlas, the official AI Student Assistant for ABC Engineering College.
+You must answer questions strictly using the provided context. 
 
-YOUR CORE BEHAVIOR RULES:
-1. IDENTITY & GREETINGS:
-   - If the user greets you (e.g., "Hi", "Hello"), welcomes you, or asks who you are / what this chatbot is about, introduce yourself warmly as CollegeBuddy.
-   - Explain that you are built to help students with admissions, fees, hostel rules, courses, and campus policies at ABC Engineering College.
+CRITICAL OUTPUT RULE:
+You must return your response ONLY as a valid JSON object with two keys: "answer" and "sources".
+- "answer": Your helpful text response formatted in Markdown. If you cannot answer the question based on the context, say "I do not have that specific information..."
+- "sources": A list of objects representing ONLY the specific chunks you used to formulate your answer. If you did not use a chunk, DO NOT include it. If you cannot answer the question, return an empty list [].
+Source object format: {{"document": "filename.pdf", "page": 1, "content": "exact snippet used"}}
 
-2. COLLEGE-SPECIFIC QUESTIONS:
-   - When answering specific questions regarding college policies, fees, dates, or programs, strictly rely on the provided CONTEXT below.
-   - Ground your answer in the provided context and present the facts clearly using bullet points and bold highlights where appropriate.
-
-3. UNKNOWN / OUT-OF-CONTEXT QUESTIONS:
-   - If a college-related question cannot be answered using the provided CONTEXT, politely state: "I do not have that specific information in the college documentation." Suggest what topics you can help with instead.
-
----
-CONTEXT FROM COLLEGE DOCUMENTS:
+CONTEXT:
 {context_text}
----
 
 USER QUESTION:
 {user_question}
-
-ANSWER:
 """
 
         # 6. Generate answer using Gemini 3.7 Flash
         answer_text = generate_llm_answer(client, prompt)
 
-        return ChatResponse(
-            answer=answer_text,
-            sources=sources,
-        )
+        try:
+            clean_text = answer_text.replace('```json', '').replace('```', '').strip()
+            parsed_response = json.loads(clean_text)
+            
+            return ChatResponse(
+                answer=parsed_response.get("answer", "I do not have that specific information in the college documentation."),
+                sources=parsed_response.get("sources", []),
+            )
+        except json.JSONDecodeError:
+            return ChatResponse(
+                answer=answer_text,
+                sources=[],
+            )
 
     except HTTPException:
         raise
