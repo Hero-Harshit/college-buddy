@@ -1,2 +1,46 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
+
+/* Beautiful Markdown Tables */
+.prose table {
+    @apply w-full text-left border-collapse rounded-lg overflow-hidden shadow-sm my-6 border border-gray-200;
+}
+
+.prose thead {
+    @apply bg-emerald-50 text-emerald-800 border-b border-gray-200;
+}
+
+.prose th {
+    @apply px-4 py-3 font-semibold text-sm;
+}
+
+.prose td {
+    @apply px-4 py-3 text-sm text-gray-700 border-b border-gray-100;
+}
+
+.prose tbody tr {
+    @apply hover:bg-gray-50 transition-colors;
+}
+
+.prose tbody tr:last-child td {
+    @apply border-b-0;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    @apply bg-gray-300 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    @apply bg-emerald-400;
+}
+
