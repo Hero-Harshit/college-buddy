@@ -290,9 +290,7 @@ export default function App() {
           </div>
         </div>
 
-        <div className="p-4 border-t border-gray-100 text-xs text-gray-400 flex items-center justify-center gap-1.5 bg-gray-50/50">
-          Powered by Gemini 3.7 Flash & pgvector
-        </div>
+
       </div>
 
       {/* Main Content */}
@@ -361,10 +359,10 @@ export default function App() {
                             <div className="flex items-center gap-1 text-xs text-gray-400 uppercase font-semibold mr-1">
                               <BookOpen size={12} /> Sources:
                             </div>
-                            {[...new Map(msg.sources.map(s => [`${s.document}-${s.page}`, s])).values()].map((source, idx) => (
-                              <a key={idx} href="#" className="inline-flex items-center gap-1 text-xs text-blue-700 bg-blue-50 border border-blue-200 px-2 py-1 rounded-md hover:bg-blue-100 transition-colors">
+                            {[...new Map(msg.sources.map(s => [`${s.document}`, s])).values()].map((source, idx) => (
+                              <a key={idx} href="#" className="inline-flex items-center gap-1 text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-1 rounded-md hover:bg-emerald-100 transition-colors">
                                 <FileText size={12} />
-                                {source.document} (Pg. {source.page})
+                                {source.document}
                               </a>
                             ))}
                           </div>
