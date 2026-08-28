@@ -14,6 +14,14 @@ def get_session_messages(session_id: str):
     response = supabase_client.table('chat_messages').select('*').eq('session_id', session_id).order('created_at').execute()
     return response.data
 
+def delete_user_session(session_id: str):
+    supabase_client = get_supabase_client()
+    # Delete messages first (safeguard in case ON DELETE CASCADE is missing)
+    supabase_client.table('chat_messages').delete().eq('session_id', session_id).execute()
+    # Delete session
+    response = supabase_client.table('chat_sessions').delete().eq('id', session_id).execute()
+    return response.data
+
 def process_chat_message(request: ChatRequest) -> Dict[str, Any]:
     supabase_client = get_supabase_client()
 
@@ -113,8 +121,9 @@ def process_chat_message(request: ChatRequest) -> Dict[str, Any]:
                 content = doc.get("content", "")
                 metadata = doc.get("metadata") or {}
                 filename = metadata.get("filename", "unknown_file")
-                context_parts.append(f"[Document: {filename}]\nContent: {content}")
-                sources_list.append({"document": filename, "page": 1})
+                page_number = metadata.get("page_number", 1)
+                context_parts.append(f"[Document: {filename}, Page: {page_number}]\nContent: {content}")
+                sources_list.append({"document": filename, "page": page_number})
                 
             context_text = "\n\n".join(context_parts) if context_parts else "No relevant context found."
             
@@ -129,6 +138,9 @@ def process_chat_message(request: ChatRequest) -> Dict[str, Any]:
             
             final_prompt = f"{system_prompt}\n\nCONTEXT:\n{context_text}\n\nUSER QUESTION:\n{request.message}"
             gemini_response = generate_llm_answer(final_prompt)
+            
+            if "I cannot answer this based on the provided documents" in gemini_response:
+                sources_list = []
 
     # 4. Save AI Response
     supabase_client.table('chat_messages').insert({

@@ -34,6 +34,7 @@ async def process_and_store_document(file_bytes: bytes, filename: str, user_id: 
         for idx, chunk in enumerate(page_chunks):
             all_chunks.append({
                 "content": chunk,
+                "page_number": page["page_number"]
             })
 
     # 3. Generate embeddings & Prepare Records
@@ -52,7 +53,7 @@ async def process_and_store_document(file_bytes: bytes, filename: str, user_id: 
             "user_id": user_id,
             "content": chunk_dict["content"],
             "embedding": chunk_dict["embedding"],
-            "metadata": {"filename": filename, "file_size": file_size}
+            "metadata": {"filename": filename, "file_size": file_size, "page_number": chunk_dict.get("page_number", 1)}
         }
         
         records_to_insert.append(record)

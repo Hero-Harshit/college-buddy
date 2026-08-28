@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Bot, User, Loader2, Menu, X, BookOpen, GraduationCap, ChevronRight, MessageSquare, FileText, Check, Copy, LogOut } from 'lucide-react';
+import { Send, Bot, User, Loader2, Menu, X, BookOpen, GraduationCap, ChevronRight, MessageSquare, FileText, Check, Copy, LogOut, MoreVertical, Trash2 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import Auth from './components/Auth';
 import Profile from './components/Profile';
@@ -14,6 +14,7 @@ export default function App() {
   const [sessions, setSessions] = useState([]);
   const [activeSessionId, setActiveSessionId] = useState(null);
   const [isRagMode, setIsRagMode] = useState(false);
+  const [openMenuId, setOpenMenuId] = useState(null);
 
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8001';
 
@@ -45,6 +46,23 @@ export default function App() {
     }
   };
 
+  const deleteSession = async (sessionId, e) => {
+    e.stopPropagation();
+    try {
+      const response = await fetch(`${API_URL}/sessions/${sessionId}`, { method: 'DELETE' });
+      if (response.ok) {
+        setSessions(prev => prev.filter(s => s.id !== sessionId));
+        if (activeSessionId === sessionId) {
+          setActiveSessionId(null);
+          setMessages([]);
+        }
+      }
+    } catch (error) {
+      console.error("Error deleting session:", error);
+    }
+    setOpenMenuId(null);
+  };
+
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
@@ -54,6 +72,12 @@ export default function App() {
   useEffect(() => {
     scrollToBottom();
   }, [messages, isLoading]);
+
+  useEffect(() => {
+    const handleClickOutside = () => setOpenMenuId(null);
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, []);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -202,14 +226,36 @@ export default function App() {
           <div className="space-y-2">
             {sessions.length > 0 ? (
               sessions.map((s) => (
-                <button
-                  key={s.id}
-                  onClick={() => loadSession(s.id)}
-                  className={`w-full text-left p-3 rounded-lg flex items-center gap-3 transition-colors border shadow-sm ${activeSessionId === s.id ? 'bg-indigo-50 text-indigo-700 border-indigo-100' : 'bg-white text-gray-700 border-gray-100 hover:bg-gray-50'}`}
-                >
-                  <MessageSquare className="w-4 h-4 flex-shrink-0" />
-                  <span className="truncate text-sm font-medium">{s.title || "New Session"}</span>
-                </button>
+                <div key={s.id} className="relative group">
+                  <button
+                    onClick={() => loadSession(s.id)}
+                    className={`w-full text-left p-3 pr-10 rounded-lg flex items-center gap-3 transition-colors border shadow-sm ${activeSessionId === s.id ? 'bg-indigo-50 text-indigo-700 border-indigo-100' : 'bg-white text-gray-700 border-gray-100 hover:bg-gray-50'}`}
+                  >
+                    <MessageSquare className="w-4 h-4 flex-shrink-0" />
+                    <span className="truncate text-sm font-medium">{s.title || "New Session"}</span>
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setOpenMenuId(openMenuId === s.id ? null : s.id);
+                    }}
+                    className={`absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-gray-400 hover:text-gray-700 rounded-md transition-opacity ${openMenuId === s.id ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 focus:opacity-100'}`}
+                  >
+                    <MoreVertical className="w-4 h-4" />
+                  </button>
+                  
+                  {openMenuId === s.id && (
+                    <div className="absolute right-0 top-10 mt-1 w-36 bg-white rounded-md shadow-lg border border-gray-100 z-50 overflow-hidden">
+                      <button
+                        onClick={(e) => deleteSession(s.id, e)}
+                        className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        Delete Chat
+                      </button>
+                    </div>
+                  )}
+                </div>
               ))
             ) : (
               <div className="text-sm text-gray-400 italic px-2">No recent chats</div>

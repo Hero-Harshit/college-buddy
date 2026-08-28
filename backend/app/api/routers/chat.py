@@ -3,7 +3,7 @@ from typing import Any
 import traceback
 
 from app.schemas.chat import ChatRequest
-from app.services.chat_service import get_user_sessions, get_session_messages, process_chat_message
+from app.services.chat_service import get_user_sessions, get_session_messages, process_chat_message, delete_user_session
 
 router = APIRouter()
 
@@ -20,6 +20,14 @@ async def get_session_messages_endpoint(session_id: str) -> Any:
     try:
         messages = get_session_messages(session_id)
         return messages
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.delete("/sessions/{session_id}")
+async def delete_session_endpoint(session_id: str) -> Any:
+    try:
+        result = delete_user_session(session_id)
+        return {"success": True, "message": "Session deleted"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
