@@ -7,3 +7,4 @@ pypdf
 pytest
 httpx
 langchain-text-splitters
+python-multipart
