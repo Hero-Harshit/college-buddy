@@ -10,13 +10,14 @@ export default function Profile({ session }) {
   const [profile, setProfile] = useState({ display_name: '', age: '', gender: '', major: '' });
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const fileInputRef = useRef(null);
+  const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8001';
 
   const fetchDocuments = async () => {
     const userId = session?.user?.id;
     if (!userId) return;
     setIsFetching(true);
     try {
-      const response = await fetch(`http://localhost:8001/api/documents/${userId}`);
+      const response = await fetch(`${API_URL}/api/documents/${userId}`);
       if (!response.ok) throw new Error('Failed to fetch documents');
       const data = await response.json();
       setDocuments(data.documents || []);
@@ -71,7 +72,7 @@ export default function Profile({ session }) {
     formData.append('user_id', session.user.id);
 
     try {
-      const response = await fetch('http://localhost:8001/upload', {
+      const response = await fetch(`${API_URL}/upload`, {
         method: 'POST',
         body: formData,
       });
@@ -106,7 +107,7 @@ export default function Profile({ session }) {
     if (!window.confirm(`Are you sure you want to delete ${filename}?`)) return;
 
     try {
-      const response = await fetch(`http://localhost:8001/documents/${userId}/${encodeURIComponent(filename)}`, {
+      const response = await fetch(`${API_URL}/documents/${userId}/${encodeURIComponent(filename)}`, {
         method: 'DELETE',
       });
 

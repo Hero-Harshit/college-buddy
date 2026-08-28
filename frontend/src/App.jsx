@@ -14,9 +14,11 @@ export default function App() {
   const [sessions, setSessions] = useState([]);
   const [activeSessionId, setActiveSessionId] = useState(null);
 
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8001';
+
   const fetchSessions = async (userId) => {
     try {
-      const response = await fetch(`http://127.0.0.1:8001/sessions/${userId}`);
+      const response = await fetch(`${API_URL}/sessions/${userId}`);
       if (response.ok) {
         const data = await response.json();
         setSessions(data);
@@ -29,7 +31,7 @@ export default function App() {
   const loadSession = async (sessionId) => {
     setActiveSessionId(sessionId);
     try {
-      const response = await fetch(`http://127.0.0.1:8001/sessions/${sessionId}/messages`);
+      const response = await fetch(`${API_URL}/sessions/${sessionId}/messages`);
       if (response.ok) {
         const data = await response.json();
         setMessages(data);
@@ -85,7 +87,7 @@ export default function App() {
 
       const userName = user?.user_metadata?.display_name || "Student";
 
-      const response = await fetch('http://127.0.0.1:8001/chat', {
+      const response = await fetch(`${API_URL}/chat`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -94,12 +96,20 @@ export default function App() {
           message: userMessage.content,
           user_name: userName,
           user_id: user.id,
-          session_id: activeSessionId
+          session_id: activeSessionId,
+          rag_mode: true
         }),
       });
 
       if (!response.ok) {
-        throw new Error(`Failed to fetch response: ${response.status}`);
+        let errorDetail = "";
+        try {
+            const errorObj = await response.json();
+            errorDetail = errorObj.detail || errorObj.message || "Unknown error";
+        } catch(e) {
+            errorDetail = response.statusText;
+        }
+        throw new Error(`Failed to fetch response: ${response.status} - ${errorDetail}`);
       }
 
       const data = await response.json();
@@ -118,10 +128,10 @@ export default function App() {
       }
     } catch (error) {
       console.error('Error:', error);
-      let errorMsg = 'Sorry, I encountered an error while trying to fetch the answer. Please try again later.';
+      let errorMsg = error.message || 'Sorry, I encountered an error while trying to fetch the answer. Please try again later.';
 
       if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
-        errorMsg = 'Unable to connect to the backend server. Please ensure the backend is running on port 8001.';
+        errorMsg = `Unable to connect to the backend server. Please ensure the backend is running at ${API_URL}.`;
       } else if (error.message.includes('Authentication failed')) {
         errorMsg = 'Your session may have expired. Please try signing out and signing back in.';
       }
