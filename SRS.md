@@ -1,7 +1,7 @@
-# Software Requirements Specification (SRS) - CollegeBuddy RAG Chatbot
+# Software Requirements Specification (SRS) - College Buddy RAG Chatbot
 
 ## 1. Overview
-The CollegeBuddy RAG Chatbot is an AI-powered college study ecosystem. It allows students to upload their PDF documents, process them into chunks and embeddings, and then query an AI assistant that answers questions *strictly* based on the uploaded context.
+The College Buddy RAG Chatbot is an AI-powered college study ecosystem. It allows students to upload their PDF documents, process them into chunks and embeddings, and then query an AI assistant that answers questions strictly based on the uploaded context.
 
 ## 2. Technology Stack
 - **Frontend**: React, Vite, Tailwind CSS

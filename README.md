@@ -1,22 +1,16 @@
-<div align="center">
-  <img src="https://img.shields.io/badge/Gemini-8E75B2?style=for-the-badge&logo=googlebard&logoColor=white" alt="Gemini"/>
-  <img src="https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=FastAPI&logoColor=white" alt="FastAPI"/>
-  <img src="https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white" alt="Supabase"/>
-  <img src="https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React"/>
-  <img src="https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind"/>
-</div>
 
-<h1 align="center">College Buddy RAG Chatbot 🎓</h1>
+
+<h1 align="center">College Buddy RAG Chatbot</h1>
 
 <p align="center">
   An intelligent, aesthetically designed <strong>Retrieval-Augmented Generation (RAG)</strong> study ecosystem. 
   <br />
-  Built with a modern Forest-Themed glassmorphism UI, Supabase pgvector, and Google's Gemini 3.7.
+  Built with a modern Forest-Themed glassmorphism UI, Supabase pgvector, and Google's Gemini API.
 </p>
 
 ---
 
-## ✨ Features
+## -> Features
 
 - **Context-Aware AI:** Answers questions strictly based on the documents you upload, eliminating hallucinations.
 - **Smart Source Deduplication:** The AI clearly and cleanly cites the exact PDF documents it pulled information from.
