@@ -13,6 +13,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('chat');
   const [sessions, setSessions] = useState([]);
   const [activeSessionId, setActiveSessionId] = useState(null);
+  const [isRagMode, setIsRagMode] = useState(false);
 
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8001';
 
@@ -97,7 +98,7 @@ export default function App() {
           user_name: userName,
           user_id: user.id,
           session_id: activeSessionId,
-          rag_mode: true
+          rag_mode: isRagMode
         }),
       });
 
@@ -362,6 +363,16 @@ export default function App() {
             {/* Input Area */}
             <div className="p-3 sm:p-4 bg-white/90 backdrop-blur-xl border-t border-gray-200 shadow-sm relative z-20">
               <div className="max-w-4xl mx-auto">
+                <div className="flex justify-start mb-2">
+                  <button
+                    type="button"
+                    onClick={() => setIsRagMode(!isRagMode)}
+                    className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 ${isRagMode ? 'bg-indigo-100 text-indigo-700 shadow-[0_0_12px_rgba(79,70,229,0.5)] border border-indigo-300' : 'bg-gray-100 text-gray-500 border border-gray-200 hover:bg-gray-200'}`}
+                  >
+                    <BookOpen size={14} className={isRagMode ? 'animate-pulse' : ''} />
+                    {isRagMode ? 'RAG Mode: ON' : 'RAG Mode: OFF'}
+                  </button>
+                </div>
                 <form
                   onSubmit={handleSubmit}
                   className="relative flex items-end bg-white rounded-2xl border border-gray-300 shadow-sm focus-within:ring-2 focus-within:ring-indigo-500 focus-within:border-indigo-500 transition-all overflow-hidden"

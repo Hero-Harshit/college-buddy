@@ -25,10 +25,8 @@ async def get_session_messages_endpoint(session_id: str) -> Any:
 
 @router.post("/chat")
 async def chat_endpoint(request: ChatRequest) -> Any:
-    print("GOT REQUEST:", request)
     try:
         result = process_chat_message(request)
-        print("RETURNING:", result)
         return result
     except Exception as e:
         traceback.print_exc()

@@ -41,9 +41,11 @@ def process_chat_message(request: ChatRequest) -> Dict[str, Any]:
     if not request.rag_mode:
         # PATH A: General Knowledge Mode
         system_prompt = (
-            "You are CollegeBuddy, an ultimate AI college study assistant. "
-            "You are currently in General Knowledge Mode. Answer the user's question accurately "
-            "and helpfully based on your general knowledge."
+            "You are CollegeBuddy, an AI chatbot integrated into the CollegeBuddy application. "
+            "You are designed specifically for students to ask questions related to their college syllabus, "
+            "previous year questions (PYQs), and complex study documents. "
+            "You are currently in General Knowledge Mode. Answer the user's questions accurately, casually, and helpfully based on your general knowledge. "
+            "You can answer anything, but always maintain your helpful student-assistant persona."
         )
         final_prompt = f"{system_prompt}\n\nUSER QUESTION:\n{request.message}"
         gemini_response = generate_llm_answer(final_prompt)
